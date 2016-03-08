@@ -36,6 +36,10 @@ class SimpleStore extends EventEmitter {
         this.__items.push(new Model(item, this.__stores))
     }
 
+    concat = (items) => {
+        this.__items = this.__items.concat(items);
+    }
+
     delete(id) {
         this.__items = this.__items.filter(item => item.id != id)
     }

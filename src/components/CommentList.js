@@ -1,7 +1,8 @@
 import React, { Component, PropTypes } from 'react'
 import Comment from './Comment'
+import { commentStore } from './../stores'
 import toggleOpen from './../HOC/toggleOpen'
-import { addComment } from './../actions/comment'
+import { addComment, loadCommentsByArticleId } from './../actions/comment'
 
 class CommentList extends Component {
     static propTypes = {
@@ -12,7 +13,13 @@ class CommentList extends Component {
     };
 
     state = {
-        comment: ''
+        comment: '',
+        loading: true,
+        loaded: false
+    }
+
+    componentWillUnmount() {
+        commentStore.removeChangeListener(this.commentsLoaded)
     }
 
     render() {
@@ -21,7 +28,7 @@ class CommentList extends Component {
 
         return (
             <div>
-                <a href = "#" onClick = {toggleOpen}>{actionText}</a>
+                <a href = "#" onClick = {this.toggleOpen}>{actionText}</a>
                 {this.getBody()}
             </div>
         )
@@ -30,9 +37,10 @@ class CommentList extends Component {
     getBody() {
         const { article, isOpen } = this.props
         if (!isOpen) return null
+        if (this.state.loading) return <h3>Loading comments..</h3>
         const commentList = article.getRelation('comments').map(comment => <li key={comment.id}><Comment comment = {comment}/></li>)
         return (
-            <div>
+            <div>                
                 <ul>{isOpen ? commentList : null}</ul>
                 <input value = {this.state.comment} onChange = {this.commentChange}/>
                 <a href = "#" onClick = {this.submitComment}>add comment</a>
@@ -56,10 +64,25 @@ class CommentList extends Component {
 
     toggleOpen = (ev) => {
         ev.preventDefault()
-        this.setState({
-            isOpen: !this.state.isOpen
-        })
+
+        if (!this.state.isOpen && !this.state.loaded) {
+            commentStore.addChangeListener(this.commentsLoaded)
+            loadCommentsByArticleId({ id: this.props.article.id})
+
+            this.setState({
+                loading: true
+            })
+        }
+
+        this.props.toggleOpen();
     }
+
+    commentsLoaded = () => {
+        this.setState({
+            loading: false,
+            loaded: true
+        })
+    };
 }
 
 export default toggleOpen(CommentList)
