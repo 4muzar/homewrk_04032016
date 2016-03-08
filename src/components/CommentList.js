@@ -13,13 +13,7 @@ class CommentList extends Component {
     };
 
     state = {
-        comment: '',
-        loading: true,
-        loaded: false
-    }
-
-    componentWillUnmount() {
-        commentStore.removeChangeListener(this.commentsLoaded)
+        comment: ''
     }
 
     render() {
@@ -37,7 +31,7 @@ class CommentList extends Component {
     getBody() {
         const { article, isOpen } = this.props
         if (!isOpen) return null
-        if (this.state.loading) return <h3>Loading comments..</h3>
+        if (article.loadingComments) return <h3>Loading comments..</h3>
         const commentList = article.getRelation('comments').map(comment => <li key={comment.id}><Comment comment = {comment}/></li>)
         return (
             <div>                
@@ -65,24 +59,12 @@ class CommentList extends Component {
     toggleOpen = (ev) => {
         ev.preventDefault()
 
-        if (!this.state.isOpen && !this.state.loaded) {
-            commentStore.addChangeListener(this.commentsLoaded)
+        if (!this.state.isOpen && !this.props.article.commentsLoaded) {
             loadCommentsByArticleId({ id: this.props.article.id})
-
-            this.setState({
-                loading: true
-            })
         }
 
         this.props.toggleOpen();
     }
-
-    commentsLoaded = () => {
-        this.setState({
-            loading: false,
-            loaded: true
-        })
-    };
 }
 
 export default toggleOpen(CommentList)
