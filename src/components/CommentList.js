@@ -58,7 +58,7 @@ class CommentList extends Component {
 
     toggleOpen = (ev) => {
         ev.preventDefault()
-
+        //у Вас isOpen в props живет, а не в state !this.state.isOpen всегда true
         if (!this.state.isOpen && !this.props.article.commentsLoaded) {
             loadCommentsByArticleId({ id: this.props.article.id})
         }
